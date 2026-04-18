@@ -1,0 +1,348 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model categorias_repuesto {
+  id        String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nombre    String      @unique @db.VarChar(100)
+  repuestos repuestos[]
+}
+
+model clientes {
+  id                 String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nombre             String               @db.VarChar(150)
+  ruc_ci             String?              @db.VarChar(20)
+  telefono           String?              @db.VarChar(30)
+  email              String?              @db.VarChar(150)
+  direccion          String?
+  notas              String?
+  activo             Boolean              @default(true)
+  creado_en          DateTime             @default(now()) @db.Timestamp(6)
+  actualizado_en     DateTime             @default(now()) @db.Timestamp(6)
+  facturas           facturas[]
+  ordenes_reparacion ordenes_reparacion[]
+  presupuestos       presupuestos[]
+  vehiculos          vehiculos[]
+}
+
+model facturas {
+  id                 String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  numero             Int                 @unique @default(autoincrement())
+  orden_id           String?             @db.Uuid
+  cliente_id         String              @db.Uuid
+  creado_por         String?             @db.Uuid
+  estado             estado_factura      @default(emitida)
+  metodo_pago        metodo_pago?
+  subtotal           Decimal             @default(0) @db.Decimal(14, 2)
+  iva_porcentaje     Decimal             @default(10) @db.Decimal(5, 2)
+  iva_monto          Decimal             @default(0) @db.Decimal(14, 2)
+  descuento          Decimal             @default(0) @db.Decimal(14, 2)
+  total              Decimal             @default(0) @db.Decimal(14, 2)
+  notas              String?
+  fecha_pago         DateTime?           @db.Timestamp(6)
+  creado_en          DateTime            @default(now()) @db.Timestamp(6)
+  actualizado_en     DateTime            @default(now()) @db.Timestamp(6)
+  clientes           clientes            @relation(fields: [cliente_id], references: [id], onUpdate: NoAction)
+  usuarios           usuarios?           @relation(fields: [creado_por], references: [id], onUpdate: NoAction)
+  ordenes_reparacion ordenes_reparacion? @relation(fields: [orden_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@index([cliente_id], map: "idx_facturas_cliente")
+  @@index([estado], map: "idx_facturas_estado")
+  @@index([orden_id], map: "idx_facturas_orden")
+}
+
+model movimientos_stock {
+  id                 String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  repuesto_id        String              @db.Uuid
+  tipo               tipo_movimiento
+  cantidad           Decimal             @db.Decimal(10, 2)
+  stock_antes        Int
+  stock_despues      Int
+  orden_id           String?             @db.Uuid
+  usuario_id         String?             @db.Uuid
+  notas              String?
+  creado_en          DateTime            @default(now()) @db.Timestamp(6)
+  ordenes_reparacion ordenes_reparacion? @relation(fields: [orden_id], references: [id], onUpdate: NoAction)
+  repuestos          repuestos           @relation(fields: [repuesto_id], references: [id], onUpdate: NoAction)
+  usuarios           usuarios?           @relation(fields: [usuario_id], references: [id], onUpdate: NoAction)
+
+  @@index([repuesto_id], map: "idx_movstock_repuesto")
+}
+
+model or_historial {
+  id                 String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orden_id           String             @db.Uuid
+  usuario_id         String?            @db.Uuid
+  estado_anterior    estado_or?
+  estado_nuevo       estado_or
+  comentario         String?
+  creado_en          DateTime           @default(now()) @db.Timestamp(6)
+  ordenes_reparacion ordenes_reparacion @relation(fields: [orden_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usuarios           usuarios?          @relation(fields: [usuario_id], references: [id], onUpdate: NoAction)
+
+  @@index([orden_id], map: "idx_or_historial_orden")
+}
+
+model or_repuestos {
+  id                 String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orden_id           String             @db.Uuid
+  repuesto_id        String?            @db.Uuid
+  descripcion        String             @db.VarChar(200)
+  cantidad           Decimal            @default(1) @db.Decimal(10, 2)
+  precio_unitario    Decimal            @default(0) @db.Decimal(14, 2)
+  subtotal           Decimal            @default(0) @db.Decimal(14, 2)
+  ordenes_reparacion ordenes_reparacion @relation(fields: [orden_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  repuestos          repuestos?         @relation(fields: [repuesto_id], references: [id], onUpdate: NoAction)
+}
+
+model or_servicios {
+  id                 String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orden_id           String             @db.Uuid
+  servicio_id        String?            @db.Uuid
+  descripcion        String             @db.VarChar(200)
+  mecanico_id        String?            @db.Uuid
+  cantidad           Decimal            @default(1) @db.Decimal(10, 2)
+  precio_unitario    Decimal            @default(0) @db.Decimal(14, 2)
+  subtotal           Decimal            @default(0) @db.Decimal(14, 2)
+  usuarios           usuarios?          @relation(fields: [mecanico_id], references: [id], onUpdate: NoAction)
+  ordenes_reparacion ordenes_reparacion @relation(fields: [orden_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  servicios          servicios?         @relation(fields: [servicio_id], references: [id], onUpdate: NoAction)
+}
+
+model ordenes_reparacion {
+  id                                               String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  numero                                           Int                 @unique @default(autoincrement())
+  presupuesto_id                                   String?             @db.Uuid
+  vehiculo_id                                      String              @db.Uuid
+  cliente_id                                       String              @db.Uuid
+  asignado_a                                       String?             @db.Uuid
+  creado_por                                       String?             @db.Uuid
+  estado                                           estado_or           @default(recibido)
+  kilometraje                                      Int?
+  descripcion_problema                             String
+  diagnostico                                      String?
+  trabajo_realizado                                String?
+  notas                                            String?
+  fecha_prometida                                  DateTime?           @db.Timestamp(6)
+  fecha_entrega                                    DateTime?           @db.Timestamp(6)
+  subtotal                                         Decimal             @default(0) @db.Decimal(14, 2)
+  descuento                                        Decimal             @default(0) @db.Decimal(14, 2)
+  total                                            Decimal             @default(0) @db.Decimal(14, 2)
+  creado_en                                        DateTime            @default(now()) @db.Timestamp(6)
+  actualizado_en                                   DateTime            @default(now()) @db.Timestamp(6)
+  facturas                                         facturas[]
+  movimientos_stock                                movimientos_stock[]
+  or_historial                                     or_historial[]
+  or_repuestos                                     or_repuestos[]
+  or_servicios                                     or_servicios[]
+  usuarios_ordenes_reparacion_asignado_aTousuarios usuarios?           @relation("ordenes_reparacion_asignado_aTousuarios", fields: [asignado_a], references: [id], onUpdate: NoAction)
+  clientes                                         clientes            @relation(fields: [cliente_id], references: [id], onUpdate: NoAction)
+  usuarios_ordenes_reparacion_creado_porTousuarios usuarios?           @relation("ordenes_reparacion_creado_porTousuarios", fields: [creado_por], references: [id], onUpdate: NoAction)
+  presupuestos                                     presupuestos?       @relation(fields: [presupuesto_id], references: [id], onUpdate: NoAction)
+  vehiculos                                        vehiculos           @relation(fields: [vehiculo_id], references: [id], onUpdate: NoAction)
+
+  @@index([asignado_a], map: "idx_or_asignado")
+  @@index([cliente_id], map: "idx_or_cliente")
+  @@index([estado], map: "idx_or_estado")
+  @@index([vehiculo_id], map: "idx_or_vehiculo")
+}
+
+model presupuesto_repuestos {
+  id              String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  presupuesto_id  String       @db.Uuid
+  repuesto_id     String?      @db.Uuid
+  descripcion     String       @db.VarChar(200)
+  cantidad        Decimal      @default(1) @db.Decimal(10, 2)
+  precio_unitario Decimal      @default(0) @db.Decimal(14, 2)
+  subtotal        Decimal      @default(0) @db.Decimal(14, 2)
+  presupuestos    presupuestos @relation(fields: [presupuesto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  repuestos       repuestos?   @relation(fields: [repuesto_id], references: [id], onUpdate: NoAction)
+}
+
+model presupuesto_servicios {
+  id              String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  presupuesto_id  String       @db.Uuid
+  servicio_id     String?      @db.Uuid
+  descripcion     String       @db.VarChar(200)
+  cantidad        Decimal      @default(1) @db.Decimal(10, 2)
+  precio_unitario Decimal      @default(0) @db.Decimal(14, 2)
+  subtotal        Decimal      @default(0) @db.Decimal(14, 2)
+  presupuestos    presupuestos @relation(fields: [presupuesto_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  servicios       servicios?   @relation(fields: [servicio_id], references: [id], onUpdate: NoAction)
+}
+
+model presupuestos {
+  id                    String                  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  numero                Int                     @unique @default(autoincrement())
+  vehiculo_id           String                  @db.Uuid
+  cliente_id            String                  @db.Uuid
+  creado_por            String?                 @db.Uuid
+  estado                estado_presupuesto      @default(borrador)
+  kilometraje           Int?
+  notas                 String?
+  validez_dias          Int                     @default(15) @db.SmallInt
+  subtotal              Decimal                 @default(0) @db.Decimal(14, 2)
+  descuento             Decimal                 @default(0) @db.Decimal(14, 2)
+  total                 Decimal                 @default(0) @db.Decimal(14, 2)
+  fecha_aprobacion      DateTime?               @db.Timestamp(6)
+  creado_en             DateTime                @default(now()) @db.Timestamp(6)
+  actualizado_en        DateTime                @default(now()) @db.Timestamp(6)
+  ordenes_reparacion    ordenes_reparacion[]
+  presupuesto_repuestos presupuesto_repuestos[]
+  presupuesto_servicios presupuesto_servicios[]
+  clientes              clientes                @relation(fields: [cliente_id], references: [id], onUpdate: NoAction)
+  usuarios              usuarios?               @relation(fields: [creado_por], references: [id], onUpdate: NoAction)
+  vehiculos             vehiculos               @relation(fields: [vehiculo_id], references: [id], onUpdate: NoAction)
+
+  @@index([cliente_id], map: "idx_presupuestos_cliente")
+  @@index([estado], map: "idx_presupuestos_estado")
+  @@index([vehiculo_id], map: "idx_presupuestos_vehiculo")
+}
+
+model repuestos {
+  id                    String                  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  categoria_id          String?                 @db.Uuid
+  codigo                String?                 @unique @db.VarChar(60)
+  nombre                String                  @db.VarChar(200)
+  descripcion           String?
+  marca                 String?                 @db.VarChar(80)
+  unidad                String                  @default("unidad") @db.VarChar(20)
+  precio_costo          Decimal                 @default(0) @db.Decimal(14, 2)
+  precio_venta          Decimal                 @default(0) @db.Decimal(14, 2)
+  stock_actual          Int                     @default(0)
+  stock_minimo          Int                     @default(0)
+  activo                Boolean                 @default(true)
+  creado_en             DateTime                @default(now()) @db.Timestamp(6)
+  actualizado_en        DateTime                @default(now()) @db.Timestamp(6)
+  movimientos_stock     movimientos_stock[]
+  or_repuestos          or_repuestos[]
+  presupuesto_repuestos presupuesto_repuestos[]
+  categorias_repuesto   categorias_repuesto?    @relation(fields: [categoria_id], references: [id], onUpdate: NoAction)
+
+  @@index([categoria_id], map: "idx_repuestos_categoria")
+  @@index([codigo], map: "idx_repuestos_codigo")
+}
+
+model servicios {
+  id                    String                  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nombre                String                  @db.VarChar(200)
+  descripcion           String?
+  precio                Decimal                 @default(0) @db.Decimal(14, 2)
+  activo                Boolean                 @default(true)
+  creado_en             DateTime                @default(now()) @db.Timestamp(6)
+  or_servicios          or_servicios[]
+  presupuesto_servicios presupuesto_servicios[]
+}
+
+model usuarios {
+  id                                                         String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nombre                                                     String               @db.VarChar(100)
+  email                                                      String               @unique @db.VarChar(150)
+  password_hash                                              String               @db.VarChar(255)
+  rol                                                        rol_usuario          @default(mecanico)
+  activo                                                     Boolean              @default(true)
+  creado_en                                                  DateTime             @default(now()) @db.Timestamp(6)
+  actualizado_en                                             DateTime             @default(now()) @db.Timestamp(6)
+  facturas                                                   facturas[]
+  movimientos_stock                                          movimientos_stock[]
+  or_historial                                               or_historial[]
+  or_servicios                                               or_servicios[]
+  ordenes_reparacion_ordenes_reparacion_asignado_aTousuarios ordenes_reparacion[] @relation("ordenes_reparacion_asignado_aTousuarios")
+  ordenes_reparacion_ordenes_reparacion_creado_porTousuarios ordenes_reparacion[] @relation("ordenes_reparacion_creado_porTousuarios")
+  presupuestos                                               presupuestos[]
+}
+
+model vehiculos {
+  id                 String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  cliente_id         String               @db.Uuid
+  patente            String               @unique @db.VarChar(20)
+  marca              String               @db.VarChar(80)
+  modelo             String               @db.VarChar(80)
+  anio               Int?                 @db.SmallInt
+  color              String?              @db.VarChar(50)
+  vin                String?              @db.VarChar(50)
+  kilometraje        Int?
+  notas              String?
+  activo             Boolean              @default(true)
+  creado_en          DateTime             @default(now()) @db.Timestamp(6)
+  actualizado_en     DateTime             @default(now()) @db.Timestamp(6)
+  ordenes_reparacion ordenes_reparacion[]
+  presupuestos       presupuestos[]
+  clientes           clientes             @relation(fields: [cliente_id], references: [id], onUpdate: NoAction)
+
+  @@index([cliente_id], map: "idx_vehiculos_cliente")
+  @@index([patente], map: "idx_vehiculos_patente")
+}
+
+model marca_modelo {
+  id               String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  marca_id         String           @db.Uuid
+  modelo_id        String           @db.Uuid
+  marcas_vehiculo  marcas_vehiculo  @relation(fields: [marca_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  modelos_vehiculo modelos_vehiculo @relation(fields: [modelo_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([marca_id, modelo_id])
+}
+
+model marcas_vehiculo {
+  id           String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nombre       String         @unique @db.VarChar(100)
+  activo       Boolean        @default(true)
+  marca_modelo marca_modelo[]
+}
+
+model modelos_vehiculo {
+  id           String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nombre       String         @db.VarChar(100)
+  activo       Boolean        @default(true)
+  marca_modelo marca_modelo[]
+}
+
+enum estado_factura {
+  emitida
+  pagada
+  anulada
+}
+
+enum estado_or {
+  recibido
+  en_diagnostico
+  esperando_repuestos
+  en_reparacion
+  listo
+  entregado
+  cancelado
+}
+
+enum estado_presupuesto {
+  borrador
+  enviado
+  aprobado
+  rechazado
+  vencido
+}
+
+enum metodo_pago {
+  efectivo
+  transferencia
+  tarjeta
+  cheque
+  credito
+}
+
+enum rol_usuario {
+  admin
+  mecanico
+  recepcionista
+}
+
+enum tipo_movimiento {
+  entrada
+  salida
+  ajuste
+}
