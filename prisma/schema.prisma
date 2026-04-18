@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model categorias_repuesto {
@@ -338,7 +339,8 @@ enum metodo_pago {
 enum rol_usuario {
   admin
   mecanico
-  recepcionista
+  administrativo
+  consultas
 }
 
 enum tipo_movimiento {

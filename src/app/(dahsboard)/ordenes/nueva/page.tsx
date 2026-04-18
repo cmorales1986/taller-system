@@ -214,10 +214,10 @@ export default function NuevaOrdenPage() {
               {/* Header */}
               <div className="flex gap-2 text-xs font-medium text-gray-400 px-2 mb-1">
                 <div className="flex-1">Repuesto</div>
-                <div className="w-20 flex-shrink-0">Cantidad</div>
-                <div className="w-32 flex-shrink-0">Precio unit.</div>
-                <div className="w-28 flex-shrink-0 text-right">Subtotal</div>
-                <div className="w-5 flex-shrink-0"></div>
+                <div className="w-20 shrink-0">Cantidad</div>
+                <div className="w-32 shrink-0">Precio unit.</div>
+                <div className="w-28 shrink-0 text-right">Subtotal</div>
+                <div className="w-5 shrink-0"></div>
               </div>
               {itemsRepuesto.map((item, i) => (
                 <div key={i} className="flex gap-2 items-center bg-gray-50 rounded-lg p-2">

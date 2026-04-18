@@ -1,7 +1,13 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 interface OrdenDetalle {
   id: string;
@@ -17,27 +23,145 @@ interface OrdenDetalle {
   fecha_prometida: string | null;
   fecha_entrega: string | null;
   creado_en: string;
-  clientes: { id: string; nombre: string; telefono: string | null; email: string | null };
-  vehiculos: { id: string; patente: string; marca: string; modelo: string; anio: number | null; color: string | null };
+  clientes: {
+    id: string;
+    nombre: string;
+    telefono: string | null;
+    email: string | null;
+  };
+  vehiculos: {
+    id: string;
+    patente: string;
+    marca: string;
+    modelo: string;
+    anio: number | null;
+    color: string | null;
+  };
   usuarios_ordenes_reparacion_asignado_aTousuarios: { nombre: string } | null;
-  or_repuestos: { id: string; descripcion: string; cantidad: number; precio_unitario: number; subtotal: number }[];
-  or_servicios: { id: string; descripcion: string; cantidad: number; precio_unitario: number; subtotal: number }[];
-  or_historial: { id: string; estado_anterior: string | null; estado_nuevo: string; comentario: string | null; creado_en: string; usuarios: { nombre: string } | null }[];
+  or_repuestos: {
+    id: string;
+    descripcion: string;
+    cantidad: number;
+    precio_unitario: number;
+    subtotal: number;
+  }[];
+  or_servicios: {
+    id: string;
+    descripcion: string;
+    cantidad: number;
+    precio_unitario: number;
+    subtotal: number;
+  }[];
+  or_historial: {
+    id: string;
+    estado_anterior: string | null;
+    estado_nuevo: string;
+    comentario: string | null;
+    creado_en: string;
+    usuarios: { nombre: string } | null;
+  }[];
 }
 
-const ESTADOS: Record<string, { label: string; color: string }> = {
-  recibido:            { label: "Recibido",            color: "bg-blue-100 text-blue-600" },
-  en_diagnostico:      { label: "En diagnóstico",      color: "bg-purple-100 text-purple-600" },
-  esperando_repuestos: { label: "Esperando repuestos", color: "bg-yellow-100 text-yellow-600" },
-  en_reparacion:       { label: "En reparación",       color: "bg-orange-100 text-orange-600" },
-  listo:               { label: "Listo",               color: "bg-green-100 text-green-600" },
-  entregado:           { label: "Entregado",           color: "bg-gray-100 text-gray-600" },
-  cancelado:           { label: "Cancelado",           color: "bg-red-100 text-red-600" },
+const ESTADOS: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+    color: string;
+  }
+> = {
+  recibido: {
+    label: "Recibido",
+    variant: "secondary",
+    color: "bg-blue-100 text-blue-700 border-blue-200",
+  },
+  en_diagnostico: {
+    label: "En diagnóstico",
+    variant: "secondary",
+    color: "bg-purple-100 text-purple-700 border-purple-200",
+  },
+  esperando_repuestos: {
+    label: "Esperando repuestos",
+    variant: "secondary",
+    color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  },
+  en_reparacion: {
+    label: "En reparación",
+    variant: "secondary",
+    color: "bg-orange-100 text-orange-700 border-orange-200",
+  },
+  listo: {
+    label: "Listo",
+    variant: "default",
+    color: "bg-green-100 text-green-700 border-green-200",
+  },
+  entregado: {
+    label: "Entregado",
+    variant: "outline",
+    color: "bg-gray-100 text-gray-600 border-gray-200",
+  },
+  cancelado: {
+    label: "Cancelado",
+    variant: "destructive",
+    color: "bg-red-100 text-red-700 border-red-200",
+  },
 };
 
-const ORDEN_ESTADOS = ["recibido", "en_diagnostico", "esperando_repuestos", "en_reparacion", "listo", "entregado"];
+const ORDEN_ESTADOS = [
+  "recibido",
+  "en_diagnostico",
+  "esperando_repuestos",
+  "en_reparacion",
+  "listo",
+  "entregado",
+];
 
-export default function OrdenDetallePage({ params }: { params: Promise<{ id: string }> }) {
+function BotonFactura({ ordenId }: { ordenId: string }) {
+  const router = useRouter();
+  const [tieneFactura, setTieneFactura] = useState<boolean | null>(null);
+  const [facturaId, setFacturaId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/facturas?orden_id=${ordenId}`)
+      .then(r => r.json())
+      .then((facturas: { id: string; orden_id: string }[]) => {
+        const factura = facturas.find(f => f.orden_id === ordenId);
+        if (factura) {
+          setTieneFactura(true);
+          setFacturaId(factura.id);
+        } else {
+          setTieneFactura(false);
+        }
+      });
+  }, [ordenId]);
+
+  if (tieneFactura === null) return null;
+
+  if (tieneFactura && facturaId) {
+    return (
+      <Button
+        onClick={() => router.push(`/facturas/${facturaId}`)}
+        variant="outline"
+        className="text-green-600 border-green-200 hover:bg-green-50 text-xs mt-2">
+        ✓ Ver Factura emitida
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      onClick={() => router.push(`/ordenes/${ordenId}/facturar`)}
+      className="bg-orange-500 hover:bg-orange-600 text-white text-xs mt-2">
+      🧾 Emitir Factura
+    </Button>
+  );
+}
+
+export default function OrdenDetallePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const router = useRouter();
   const [orden, setOrden] = useState<OrdenDetalle | null>(null);
@@ -46,7 +170,9 @@ export default function OrdenDetallePage({ params }: { params: Promise<{ id: str
   const [diagnostico, setDiagnostico] = useState("");
   const [trabajoRealizado, setTrabajoRealizado] = useState("");
 
-  useEffect(() => { fetchOrden(); }, []);
+  useEffect(() => {
+    fetchOrden();
+  }, []);
 
   async function fetchOrden() {
     setLoading(true);
@@ -63,7 +189,11 @@ export default function OrdenDetallePage({ params }: { params: Promise<{ id: str
     await fetch(`/api/ordenes/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estado: nuevoEstado, diagnostico, trabajo_realizado: trabajoRealizado }),
+      body: JSON.stringify({
+        estado: nuevoEstado,
+        diagnostico,
+        trabajo_realizado: trabajoRealizado,
+      }),
     });
     await fetchOrden();
     setActualizando(false);
@@ -74,281 +204,464 @@ export default function OrdenDetallePage({ params }: { params: Promise<{ id: str
     await fetch(`/api/ordenes/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estado: orden?.estado, diagnostico, trabajo_realizado: trabajoRealizado }),
+      body: JSON.stringify({
+        estado: orden?.estado,
+        diagnostico,
+        trabajo_realizado: trabajoRealizado,
+      }),
     });
     await fetchOrden();
     setActualizando(false);
   }
 
-  if (loading) return <div className="p-8 text-center text-gray-400">Cargando...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Cargando...</p>
+      </div>
+    );
+
   if (!orden || !orden.clientes || !orden.vehiculos)
-    return <div className="p-8 text-center text-gray-400">Orden no encontrada</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Orden no encontrada</p>
+      </div>
+    );
 
   const estadoActualIndex = ORDEN_ESTADOS.indexOf(orden.estado);
-  const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400";
+  const inputClass =
+    "w-full border border-input rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-
+    <div className="space-y-6 pb-10">
       {/* ── HEADER ── */}
       <div className="flex items-center gap-4">
-        <button onClick={() => router.back()}
-          className="text-gray-400 hover:text-gray-600 text-sm transition-colors flex-shrink-0">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.back()}
+          className="text-muted-foreground hover:text-foreground"
+        >
           ← Volver
-        </button>
+        </Button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold text-gray-800">
+            <h1 className="text-2xl font-bold">
               OR-{String(orden.numero).padStart(4, "0")}
             </h1>
-            <span className={`text-xs font-medium px-3 py-1 rounded-full ${ESTADOS[orden.estado]?.color}`}>
+            <span
+              className={`text-xs font-semibold px-3 py-1 rounded-full border ${ESTADOS[orden.estado]?.color}`}
+            >
               {ESTADOS[orden.estado]?.label}
             </span>
           </div>
-          <p className="text-gray-500 text-sm mt-0.5">
-            Creada el {new Date(orden.creado_en).toLocaleDateString("es-PY", { day: "2-digit", month: "long", year: "numeric" })}
+          <p className="text-muted-foreground text-sm mt-0.5">
+            Creada el{" "}
+            {new Date(orden.creado_en).toLocaleDateString("es-PY", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })}
           </p>
+          {(orden.estado === "listo" || orden.estado === "entregado") && (
+            <BotonFactura ordenId={id} />
+          )}
         </div>
       </div>
 
       {/* ── PROGRESO DE ESTADOS ── */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <h2 className="font-semibold text-gray-700 mb-6">Estado de la orden</h2>
-        <div className="flex items-center">
-          {ORDEN_ESTADOS.map((est, i) => {
-            const esActual = est === orden.estado;
-            const esPasado = i < estadoActualIndex;
-            return (
-              <div key={est} className="flex items-center flex-1">
-                <div className="flex flex-col items-center flex-1">
-                  <button
-                    onClick={() => cambiarEstado(est)}
-                    disabled={actualizando || esActual}
-                    className={`w-9 h-9 rounded-full text-xs font-bold transition-all ${
-                      esActual ? "bg-orange-500 text-white scale-110 shadow-md" :
-                      esPasado ? "bg-green-500 text-white cursor-pointer hover:scale-105" :
-                      "bg-gray-200 text-gray-400 cursor-pointer hover:bg-gray-300"
-                    }`}>
-                    {esPasado ? "✓" : i + 1}
-                  </button>
-                  <span className={`text-xs mt-2 text-center leading-tight w-16 ${
-                    esActual ? "text-orange-600 font-medium" :
-                    esPasado ? "text-green-600" : "text-gray-400"
-                  }`}>
-                    {ESTADOS[est]?.label}
-                  </span>
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Estado de la orden</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center">
+            {ORDEN_ESTADOS.map((est, i) => {
+              const esActual = est === orden.estado;
+              const esPasado = i < estadoActualIndex;
+              return (
+                <div key={est} className="flex items-center flex-1">
+                  <div className="flex flex-col items-center flex-1">
+                    <button
+                      onClick={() => cambiarEstado(est)}
+                      disabled={actualizando || esActual}
+                      className={`w-9 h-9 rounded-full text-xs font-bold transition-all border-2 ${
+                        esActual
+                          ? "bg-orange-500 border-orange-500 text-white scale-110 shadow-md"
+                          : esPasado
+                            ? "bg-green-500 border-green-500 text-white hover:scale-105"
+                            : "bg-background border-border text-muted-foreground hover:border-orange-300"
+                      }`}
+                    >
+                      {esPasado ? "✓" : i + 1}
+                    </button>
+                    <span
+                      className={`text-xs mt-2 text-center leading-tight w-16 ${
+                        esActual
+                          ? "text-orange-600 font-semibold"
+                          : esPasado
+                            ? "text-green-600"
+                            : "text-muted-foreground"
+                      }`}
+                    >
+                      {ESTADOS[est]?.label}
+                    </span>
+                  </div>
+                  {i < ORDEN_ESTADOS.length - 1 && (
+                    <div
+                      className={`h-0.5 flex-1 mb-6 transition-colors ${
+                        i < estadoActualIndex ? "bg-green-400" : "bg-border"
+                      }`}
+                    />
+                  )}
                 </div>
-                {i < ORDEN_ESTADOS.length - 1 && (
-                  <div className={`h-0.5 flex-1 mb-6 ${i < estadoActualIndex ? "bg-green-400" : "bg-gray-200"}`} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-        {orden.estado !== "entregado" && orden.estado !== "cancelado" && (
-          <div className="flex gap-2 mt-6 pt-4 border-t border-gray-100">
-            {estadoActualIndex < ORDEN_ESTADOS.length - 1 && (
-              <button
-                onClick={() => cambiarEstado(ORDEN_ESTADOS[estadoActualIndex + 1])}
-                disabled={actualizando}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
-                {actualizando ? "Actualizando..." : `Avanzar a "${ESTADOS[ORDEN_ESTADOS[estadoActualIndex + 1]]?.label}"`}
-              </button>
-            )}
-            <button
-              onClick={() => cambiarEstado("cancelado")}
-              disabled={actualizando}
-              className="bg-gray-100 hover:bg-red-50 text-red-500 hover:text-red-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-              Cancelar orden
-            </button>
+              );
+            })}
           </div>
-        )}
-      </div>
 
-      {/* ── CARDS: CLIENTE · VEHÍCULO · DETALLES (3 columnas) ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+          {orden.estado !== "entregado" && orden.estado !== "cancelado" && (
+            <>
+              <Separator className="mt-6 mb-4" />
+              <div className="flex gap-2">
+                {estadoActualIndex < ORDEN_ESTADOS.length - 1 && (
+                  <Button
+                    onClick={() =>
+                      cambiarEstado(ORDEN_ESTADOS[estadoActualIndex + 1])
+                    }
+                    disabled={actualizando}
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                  >
+                    {actualizando
+                      ? "Actualizando..."
+                      : `Avanzar a "${ESTADOS[ORDEN_ESTADOS[estadoActualIndex + 1]]?.label}"`}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={() => cambiarEstado("cancelado")}
+                  disabled={actualizando}
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+                >
+                  Cancelar orden
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
+      {/* ── CARDS: CLIENTE · VEHÍCULO · DETALLES ── */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: "16px",
+        }}
+      >
         {/* CARD CLIENTE */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-orange-500 mb-3">Cliente</h3>
-          <p className="font-medium text-gray-800">{orden.clientes.nombre}</p>
-          {orden.clientes.telefono && <p className="text-sm text-gray-500 mt-1">{orden.clientes.telefono}</p>}
-          {orden.clientes.email && <p className="text-sm text-gray-500">{orden.clientes.email}</p>}
-        </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs uppercase tracking-widest text-orange-500 font-bold">
+              Cliente
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <p className="font-semibold text-foreground">
+              {orden.clientes.nombre}
+            </p>
+            {orden.clientes.telefono && (
+              <p className="text-sm text-muted-foreground">
+                {orden.clientes.telefono}
+              </p>
+            )}
+            {orden.clientes.email && (
+              <p className="text-sm text-muted-foreground">
+                {orden.clientes.email}
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* CARD VEHÍCULO */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-orange-500 mb-3">Vehículo</h3>
-          <span className="bg-gray-900 text-white text-xs font-bold px-2 py-1 rounded">
-            {orden.vehiculos.patente}
-          </span>
-          <p className="font-medium text-gray-800 mt-2">{orden.vehiculos.marca} {orden.vehiculos.modelo}</p>
-          <p className="text-sm text-gray-500">{orden.vehiculos.anio} · {orden.vehiculos.color}</p>
-          {orden.kilometraje && <p className="text-sm text-gray-500">{orden.kilometraje.toLocaleString()} km</p>}
-        </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs uppercase tracking-widest text-orange-500 font-bold">
+              Vehículo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <div>
+              <span className="bg-foreground text-background text-xs font-bold px-2 py-1 rounded">
+                {orden.vehiculos.patente}
+              </span>
+            </div>
+            <p className="font-semibold text-foreground pt-1">
+              {orden.vehiculos.marca} {orden.vehiculos.modelo}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {orden.vehiculos.anio} · {orden.vehiculos.color}
+            </p>
+            {orden.kilometraje && (
+              <p className="text-sm text-muted-foreground">
+                {orden.kilometraje.toLocaleString()} km
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* CARD DETALLES */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-orange-500 mb-3">Detalles</h3>
-          {orden.usuarios_ordenes_reparacion_asignado_aTousuarios && (
-            <p className="text-sm text-gray-600">
-              <span className="text-gray-400">Mecánico:</span>{" "}
-              {orden.usuarios_ordenes_reparacion_asignado_aTousuarios.nombre}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs uppercase tracking-widest text-orange-500 font-bold">
+              Detalles
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            {orden.usuarios_ordenes_reparacion_asignado_aTousuarios && (
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">Mecánico:</span>{" "}
+                {orden.usuarios_ordenes_reparacion_asignado_aTousuarios.nombre}
+              </p>
+            )}
+            {orden.fecha_prometida && (
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  Entrega est.:
+                </span>{" "}
+                {new Date(orden.fecha_prometida).toLocaleDateString("es-PY")}
+              </p>
+            )}
+            {orden.fecha_entrega && (
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">Entregado:</span>{" "}
+                {new Date(orden.fecha_entrega).toLocaleDateString("es-PY")}
+              </p>
+            )}
+            <p className="text-2xl font-bold text-foreground pt-2">
+              {Number(orden.total).toLocaleString("es-PY")} Gs.
             </p>
-          )}
-          {orden.fecha_prometida && (
-            <p className="text-sm text-gray-600 mt-1">
-              <span className="text-gray-400">Entrega est.:</span>{" "}
-              {new Date(orden.fecha_prometida).toLocaleDateString("es-PY")}
-            </p>
-          )}
-          {orden.fecha_entrega && (
-            <p className="text-sm text-gray-600 mt-1">
-              <span className="text-gray-400">Entregado:</span>{" "}
-              {new Date(orden.fecha_entrega).toLocaleDateString("es-PY")}
-            </p>
-          )}
-          <p className="text-xl font-bold text-gray-800 mt-3">
-            {Number(orden.total).toLocaleString("es-PY")} Gs.
-          </p>
-        </div>
-
+          </CardContent>
+        </Card>
       </div>
 
       {/* ── DIAGNÓSTICO Y TRABAJO ── */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <h2 className="font-semibold text-gray-700 mb-4">Diagnóstico y trabajo</h2>
-        <div className="space-y-4">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Diagnóstico y trabajo</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
               Problema reportado por el cliente
-            </label>
-            <p className="text-gray-800 bg-gray-50 rounded-lg p-3 text-sm border border-gray-100">
-              {orden.descripcion_problema}
             </p>
+            <div className="bg-muted rounded-lg p-3 text-sm text-foreground border border-border">
+              {orden.descripcion_problema}
+            </div>
+          </div>
+          <Separator />
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 block">
+              Diagnóstico del mecánico
+            </label>
+            <textarea
+              value={diagnostico}
+              onChange={(e) => setDiagnostico(e.target.value)}
+              className={inputClass}
+              rows={3}
+              placeholder="Describí el diagnóstico técnico..."
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Diagnóstico del mecánico</label>
-            <textarea value={diagnostico} onChange={e => setDiagnostico(e.target.value)}
-              className={inputClass} rows={3} placeholder="Describí el diagnóstico técnico..." />
+            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 block">
+              Trabajo realizado
+            </label>
+            <textarea
+              value={trabajoRealizado}
+              onChange={(e) => setTrabajoRealizado(e.target.value)}
+              className={inputClass}
+              rows={3}
+              placeholder="Describí el trabajo realizado..."
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Trabajo realizado</label>
-            <textarea value={trabajoRealizado} onChange={e => setTrabajoRealizado(e.target.value)}
-              className={inputClass} rows={3} placeholder="Describí el trabajo realizado..." />
-          </div>
-          <button onClick={guardarNotas} disabled={actualizando}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
+          <Button
+            onClick={guardarNotas}
+            disabled={actualizando}
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+          >
             {actualizando ? "Guardando..." : "Guardar notas"}
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardContent>
+      </Card>
 
-      {/* ── REPUESTOS Y MANO DE OBRA (2 columnas) ── */}
-      <div >
-
+      {/* ── REPUESTOS Y MANO DE OBRA ── */}
+      <div
+        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}
+      >
         {/* CARD REPUESTOS */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-orange-500 mb-4">Repuestos</h3>
-          {orden.or_repuestos.length === 0 ? (
-            <p className="text-sm text-gray-400 italic">Sin repuestos</p>
-          ) : (
-            <div>
-              {orden.or_repuestos.map(r => (
-                <div key={r.id} className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
-                  <div className="flex-1 min-w-0 pr-4">
-                    <p className="text-gray-700 font-medium text-sm">{r.descripcion}</p>
-                    <p className="text-gray-400 text-xs mt-0.5">
-                      {r.cantidad} × {Number(r.precio_unitario).toLocaleString("es-PY")} Gs.
-                    </p>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs uppercase tracking-widest text-orange-500 font-bold">
+              Repuestos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {orden.or_repuestos.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">
+                Sin repuestos
+              </p>
+            ) : (
+              <div>
+                {orden.or_repuestos.map((r, i) => (
+                  <div key={r.id}>
+                    <div className="flex justify-between items-start py-3">
+                      <div className="flex-1 min-w-0 pr-4">
+                        <p className="text-sm font-medium text-foreground">
+                          {r.descripcion}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {r.cantidad} ×{" "}
+                          {Number(r.precio_unitario).toLocaleString("es-PY")}{" "}
+                          Gs.
+                        </p>
+                      </div>
+                      <span className="text-sm font-semibold text-foreground shrink-0">
+                        {Number(r.subtotal).toLocaleString("es-PY")} Gs.
+                      </span>
+                    </div>
+                    {i < orden.or_repuestos.length - 1 && <Separator />}
                   </div>
-                  <span className="font-semibold text-gray-800 text-sm flex-shrink-0">
-                    {Number(r.subtotal).toLocaleString("es-PY")} Gs.
+                ))}
+                <Separator className="mt-1" />
+                <div className="flex justify-between items-center pt-3">
+                  <span className="text-sm text-muted-foreground">
+                    Total repuestos
+                  </span>
+                  <span className="font-bold text-foreground">
+                    {orden.or_repuestos
+                      .reduce((acc, r) => acc + Number(r.subtotal), 0)
+                      .toLocaleString("es-PY")}{" "}
+                    Gs.
                   </span>
                 </div>
-              ))}
-              <div className="flex justify-between items-center pt-3">
-                <span className="text-sm text-gray-500">Total repuestos</span>
-                <span className="font-bold text-gray-800">
-                  {orden.or_repuestos.reduce((acc, r) => acc + Number(r.subtotal), 0).toLocaleString("es-PY")} Gs.
-                </span>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* CARD MANO DE OBRA */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-orange-500 mb-4">Mano de obra</h3>
-          {orden.or_servicios.length === 0 ? (
-            <p className="text-sm text-gray-400 italic">Sin servicios</p>
-          ) : (
-            <div>
-              {orden.or_servicios.map(s => (
-                <div key={s.id} className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
-                  <div className="flex-1 min-w-0 pr-4">
-                    <p className="text-gray-700 font-medium text-sm">{s.descripcion}</p>
-                    <p className="text-gray-400 text-xs mt-0.5">
-                      {s.cantidad} × {Number(s.precio_unitario).toLocaleString("es-PY")} Gs.
-                    </p>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs uppercase tracking-widest text-orange-500 font-bold">
+              Mano de obra
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {orden.or_servicios.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">
+                Sin servicios
+              </p>
+            ) : (
+              <div>
+                {orden.or_servicios.map((s, i) => (
+                  <div key={s.id}>
+                    <div className="flex justify-between items-start py-3">
+                      <div className="flex-1 min-w-0 pr-4">
+                        <p className="text-sm font-medium text-foreground">
+                          {s.descripcion}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {s.cantidad} ×{" "}
+                          {Number(s.precio_unitario).toLocaleString("es-PY")}{" "}
+                          Gs.
+                        </p>
+                      </div>
+                      <span className="text-sm font-semibold text-foreground shrink-0">
+                        {Number(s.subtotal).toLocaleString("es-PY")} Gs.
+                      </span>
+                    </div>
+                    {i < orden.or_servicios.length - 1 && <Separator />}
                   </div>
-                  <span className="font-semibold text-gray-800 text-sm flex-shrink-0">
-                    {Number(s.subtotal).toLocaleString("es-PY")} Gs.
+                ))}
+                <Separator className="mt-1" />
+                <div className="flex justify-between items-center pt-3">
+                  <span className="text-sm text-muted-foreground">
+                    Total mano de obra
+                  </span>
+                  <span className="font-bold text-foreground">
+                    {orden.or_servicios
+                      .reduce((acc, s) => acc + Number(s.subtotal), 0)
+                      .toLocaleString("es-PY")}{" "}
+                    Gs.
                   </span>
                 </div>
-              ))}
-              <div className="flex justify-between items-center pt-3">
-                <span className="text-sm text-gray-500">Total mano de obra</span>
-                <span className="font-bold text-gray-800">
-                  {orden.or_servicios.reduce((acc, s) => acc + Number(s.subtotal), 0).toLocaleString("es-PY")} Gs.
-                </span>
               </div>
-            </div>
-          )}
-        </div>
-
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* ── HISTORIAL DE CAMBIOS ── */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <h2 className="font-semibold text-gray-700 mb-4">Historial de cambios</h2>
-        {orden.or_historial.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">Sin historial</p>
-        ) : (
-          <div className="space-y-4">
-            {orden.or_historial.map(h => (
-              <div key={h.id} className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-orange-400 mt-1.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm text-gray-700">
-                    {h.estado_anterior ? (
-                      <>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${ESTADOS[h.estado_anterior]?.color}`}>
-                          {ESTADOS[h.estado_anterior]?.label}
-                        </span>
-                        <span className="text-gray-400 mx-2">→</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${ESTADOS[h.estado_nuevo]?.color}`}>
-                          {ESTADOS[h.estado_nuevo]?.label}
-                        </span>
-                      </>
-                    ) : (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${ESTADOS[h.estado_nuevo]?.color}`}>
-                        Orden creada — {ESTADOS[h.estado_nuevo]?.label}
-                      </span>
-                    )}
-                  </p>
-                  {h.comentario && <p className="text-xs text-gray-500 mt-1">{h.comentario}</p>}
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(h.creado_en).toLocaleString("es-PY")}
-                    {h.usuarios && ` · ${h.usuarios.nombre}`}
-                  </p>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Historial de cambios</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {orden.or_historial.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic">
+              Sin historial
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {orden.or_historial.map((h, i) => (
+                <div key={h.id}>
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 rounded-full bg-orange-400 mt-1.5 shrink-0" />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {h.estado_anterior ? (
+                          <>
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full border ${ESTADOS[h.estado_anterior]?.color}`}
+                            >
+                              {ESTADOS[h.estado_anterior]?.label}
+                            </span>
+                            <span className="text-muted-foreground text-xs">
+                              →
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full border ${ESTADOS[h.estado_nuevo]?.color}`}
+                            >
+                              {ESTADOS[h.estado_nuevo]?.label}
+                            </span>
+                          </>
+                        ) : (
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full border ${ESTADOS[h.estado_nuevo]?.color}`}
+                          >
+                            Orden creada — {ESTADOS[h.estado_nuevo]?.label}
+                          </span>
+                        )}
+                      </div>
+                      {h.comentario && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {h.comentario}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(h.creado_en).toLocaleString("es-PY")}
+                        {h.usuarios && ` · ${h.usuarios.nombre}`}
+                      </p>
+                    </div>
+                  </div>
+                  {i < orden.or_historial.length - 1 && (
+                    <Separator className="mt-4" />
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

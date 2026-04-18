@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import LoadingCar from "@/components/ui/LoadingCar";
 
 interface Orden {
   id: string; numero: number; estado: string;
@@ -90,7 +91,7 @@ export default function OrdenesPage() {
       {/* Tabla */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Cargando...</div>
+          <LoadingCar />
         ) : filtradas.length === 0 ? (
           <div className="p-8 text-center text-gray-400">
             {busqueda || filtroEstado ? "No se encontraron órdenes" : "No hay órdenes registradas aún"}

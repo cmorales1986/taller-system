@@ -1,15 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// GET — obtener un cliente con sus vehículos
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const cliente = await prisma.clientes.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         vehiculos: {
           where: { activo: true },
@@ -28,17 +27,17 @@ export async function GET(
   }
 }
 
-// PUT — actualizar cliente
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { nombre, ruc_ci, telefono, email, direccion, notas } = body;
 
     const cliente = await prisma.clientes.update({
-      where: { id: params.id },
+      where: { id },
       data: { nombre, ruc_ci, telefono, email, direccion, notas }
     });
 
@@ -48,17 +47,16 @@ export async function PUT(
   }
 }
 
-// DELETE — baja lógica
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await prisma.clientes.update({
-      where: { id: params.id },
+      where: { id },
       data: { activo: false }
     });
-
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json({ error: "Error al eliminar cliente" }, { status: 500 });
