@@ -1,17 +1,17 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { categoria_id, codigo, nombre, descripcion, marca, unidad, precio_costo, precio_venta, stock_actual, stock_minimo } = body;
 
     const repuesto = await prisma.repuestos.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         categoria_id: categoria_id || null,
         codigo: codigo || null,
@@ -34,11 +34,12 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await prisma.repuestos.update({
-      where: { id: params.id },
+      where: { id },
       data: { activo: false }
     });
     return NextResponse.json({ ok: true });
