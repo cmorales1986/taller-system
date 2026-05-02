@@ -25,9 +25,9 @@ interface Factura {
 }
 
 const ESTADOS: Record<string, { label: string; color: string }> = {
-  emitida: { label: "Emitida",  color: "bg-blue-100 text-blue-700 border-blue-200" },
-  pagada:  { label: "Pagada",   color: "bg-green-100 text-green-700 border-green-200" },
-  anulada: { label: "Anulada",  color: "bg-red-100 text-red-700 border-red-200" },
+  emitida: { label: "Emitida", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  pagada:  { label: "Pagada",  color: "bg-green-100 text-green-700 border-green-200" },
+  anulada: { label: "Anulada", color: "bg-red-100 text-red-700 border-red-200" },
 };
 
 const METODOS = [
@@ -46,6 +46,8 @@ export default function FacturaDetallePage({ params }: { params: Promise<{ id: s
   const [actualizando, setActualizando] = useState(false);
   const [metodoPago, setMetodoPago] = useState("");
 
+  useEffect(() => { fetchFactura(); }, []);
+
   async function fetchFactura() {
     setLoading(true);
     const res = await fetch(`/api/facturas/${id}`);
@@ -54,8 +56,6 @@ export default function FacturaDetallePage({ params }: { params: Promise<{ id: s
     setMetodoPago(data.metodo_pago || "");
     setLoading(false);
   }
-
-  useEffect(() => { fetchFactura(); }, []);
 
   async function marcarPagada() {
     if (!metodoPago) { alert("Seleccioná el método de pago"); return; }
@@ -81,33 +81,23 @@ export default function FacturaDetallePage({ params }: { params: Promise<{ id: s
     setActualizando(false);
   }
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <LoadingCar />
-    </div>
-  );
-
-  if (!factura) return (
-    <div className="flex items-center justify-center h-64">
-      <p className="text-muted-foreground">Factura no encontrada</p>
-    </div>
-  );
+  if (loading) return <div className="flex items-center justify-center h-64"><LoadingCar /></div>;
+  if (!factura) return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Factura no encontrada</p></div>;
 
   const selectStyle = { color: "#111827" };
-  const inputClass = "w-full border border-input rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring";
+  const inputClass = "w-full border border-input rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-orange-400";
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="space-y-4 lg:space-y-6 pb-10">
 
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.back()}
-          className="text-muted-foreground">← Volver</Button>
+      <div className="flex items-start gap-3">
+        <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-muted-foreground shrink-0 mt-1">
+          ← Volver
+        </Button>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold">
-              F-{String(factura.numero).padStart(4, "0")}
-            </h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl lg:text-2xl font-bold">F-{String(factura.numero).padStart(4, "0")}</h1>
             <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${ESTADOS[factura.estado]?.color}`}>
               {ESTADOS[factura.estado]?.label}
             </span>
@@ -126,8 +116,8 @@ export default function FacturaDetallePage({ params }: { params: Promise<{ id: s
             <CardTitle className="text-base">Registrar pago</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-3 items-end flex-wrap">
-              <div className="w-56">
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
+              <div className="w-full sm:w-56">
                 <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                   Método de pago *
                 </label>
@@ -137,42 +127,35 @@ export default function FacturaDetallePage({ params }: { params: Promise<{ id: s
                   {METODOS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                 </select>
               </div>
-              <Button onClick={marcarPagada} disabled={actualizando}
-                className="bg-green-500 hover:bg-green-600 text-white">
-                ✓ Marcar como pagada
-              </Button>
-              <Button variant="outline" onClick={anularFactura} disabled={actualizando}
-                className="text-red-500 border-red-200 hover:bg-red-50">
-                Anular factura
-              </Button>
+              <div className="flex gap-2 flex-wrap">
+                <Button onClick={marcarPagada} disabled={actualizando}
+                  className="bg-green-500 hover:bg-green-600 text-white">
+                  ✓ Marcar como pagada
+                </Button>
+                <Button variant="outline" onClick={anularFactura} disabled={actualizando}
+                  className="text-red-500 border-red-200 hover:bg-red-50">
+                  Anular
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Cards info */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
-
-        {/* Cliente */}
+      {/* Cliente · Vehículo · Pago — 1 col mobile, 3 desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-widest text-orange-500 font-bold">Cliente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
-            <p className="font-semibold text-foreground">{factura.clientes.nombre}</p>
-            {factura.clientes.ruc_ci && (
-              <p className="text-sm text-muted-foreground">RUC/CI: {factura.clientes.ruc_ci}</p>
-            )}
-            {factura.clientes.telefono && (
-              <p className="text-sm text-muted-foreground">{factura.clientes.telefono}</p>
-            )}
-            {factura.clientes.email && (
-              <p className="text-sm text-muted-foreground">{factura.clientes.email}</p>
-            )}
+            <p className="font-semibold">{factura.clientes.nombre}</p>
+            {factura.clientes.ruc_ci && <p className="text-sm text-muted-foreground">RUC/CI: {factura.clientes.ruc_ci}</p>}
+            {factura.clientes.telefono && <p className="text-sm text-muted-foreground">{factura.clientes.telefono}</p>}
+            {factura.clientes.email && <p className="text-sm text-muted-foreground break-all">{factura.clientes.email}</p>}
           </CardContent>
         </Card>
 
-        {/* Vehículo y OR */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-widest text-orange-500 font-bold">Vehículo</CardTitle>
@@ -183,11 +166,11 @@ export default function FacturaDetallePage({ params }: { params: Promise<{ id: s
                 <span className="bg-foreground text-background text-xs font-bold px-2 py-1 rounded">
                   {factura.ordenes_reparacion.vehiculos.patente}
                 </span>
-                <p className="font-semibold text-foreground pt-1">
+                <p className="font-semibold pt-1">
                   {factura.ordenes_reparacion.vehiculos.marca} {factura.ordenes_reparacion.vehiculos.modelo}
                 </p>
                 <p className="text-sm text-muted-foreground">{factura.ordenes_reparacion.vehiculos.anio}</p>
-                <p className="text-xs text-muted-foreground font-mono mt-2">
+                <p className="text-xs text-muted-foreground font-mono mt-1">
                   OR-{String(factura.ordenes_reparacion.numero).padStart(4, "0")}
                 </p>
               </>
@@ -197,8 +180,7 @@ export default function FacturaDetallePage({ params }: { params: Promise<{ id: s
           </CardContent>
         </Card>
 
-        {/* Pago */}
-        <Card>
+        <Card className="sm:col-span-2 lg:col-span-1">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-widest text-orange-500 font-bold">Pago</CardTitle>
           </CardHeader>
@@ -215,17 +197,14 @@ export default function FacturaDetallePage({ params }: { params: Promise<{ id: s
                 {new Date(factura.fecha_pago).toLocaleDateString("es-PY")}
               </p>
             )}
-            <p className="text-2xl font-bold text-foreground pt-2">
-              {Number(factura.total).toLocaleString("es-PY")} Gs.
-            </p>
+            <p className="text-2xl font-bold pt-2">{Number(factura.total).toLocaleString("es-PY")} Gs.</p>
           </CardContent>
         </Card>
-
       </div>
 
-      {/* Detalle items */}
+      {/* Repuestos + Servicios — 1 col mobile, 2 desktop */}
       {factura.ordenes_reparacion && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-xs uppercase tracking-widest text-orange-500 font-bold">Repuestos</CardTitle>
@@ -238,15 +217,13 @@ export default function FacturaDetallePage({ params }: { params: Promise<{ id: s
                   {factura.ordenes_reparacion.or_repuestos.map((r, i) => (
                     <div key={r.id}>
                       <div className="flex justify-between items-start py-3">
-                        <div className="flex-1 min-w-0 pr-4">
+                        <div className="flex-1 min-w-0 pr-3">
                           <p className="text-sm font-medium">{r.descripcion}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {r.cantidad} × {Number(r.precio_unitario).toLocaleString("es-PY")} Gs.
                           </p>
                         </div>
-                        <span className="text-sm font-semibold shrink-0">
-                          {Number(r.subtotal).toLocaleString("es-PY")} Gs.
-                        </span>
+                        <span className="text-sm font-semibold shrink-0">{Number(r.subtotal).toLocaleString("es-PY")} Gs.</span>
                       </div>
                       {i < factura.ordenes_reparacion!.or_repuestos.length - 1 && <Separator />}
                     </div>
@@ -258,7 +235,7 @@ export default function FacturaDetallePage({ params }: { params: Promise<{ id: s
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs uppercase tracking-widest text-orange-500 font-bold">Mano de obra</CardTitle>
+              <CardTitle className="text-xs uppercase tracking-widests text-orange-500 font-bold">Mano de obra</CardTitle>
             </CardHeader>
             <CardContent>
               {factura.ordenes_reparacion.or_servicios.length === 0 ? (
@@ -268,15 +245,13 @@ export default function FacturaDetallePage({ params }: { params: Promise<{ id: s
                   {factura.ordenes_reparacion.or_servicios.map((s, i) => (
                     <div key={s.id}>
                       <div className="flex justify-between items-start py-3">
-                        <div className="flex-1 min-w-0 pr-4">
+                        <div className="flex-1 min-w-0 pr-3">
                           <p className="text-sm font-medium">{s.descripcion}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {s.cantidad} × {Number(s.precio_unitario).toLocaleString("es-PY")} Gs.
                           </p>
                         </div>
-                        <span className="text-sm font-semibold shrink-0">
-                          {Number(s.subtotal).toLocaleString("es-PY")} Gs.
-                        </span>
+                        <span className="text-sm font-semibold shrink-0">{Number(s.subtotal).toLocaleString("es-PY")} Gs.</span>
                       </div>
                       {i < factura.ordenes_reparacion!.or_servicios.length - 1 && <Separator />}
                     </div>

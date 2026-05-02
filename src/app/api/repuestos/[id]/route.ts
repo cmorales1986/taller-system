@@ -1,6 +1,23 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const repuesto = await prisma.repuestos.findUnique({
+      where: { id },
+      include: { categorias_repuesto: true }
+    });
+    if (!repuesto) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+    return NextResponse.json(repuesto);
+  } catch (error) {
+    return NextResponse.json({ error: "Error al obtener repuesto" }, { status: 500 });
+  }
+}
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

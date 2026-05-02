@@ -36,14 +36,15 @@ function LoginForm() {
     router.refresh();
   }
 
-  const inputClass = "w-full border border-input rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring";
+  const inputClass =
+    "w-full border border-input rounded-lg px-3 py-3 text-base bg-background focus:outline-none focus:ring-2 focus:ring-ring";
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-orange-500 rounded-2xl mb-4 shadow-lg">
-            <span className="text-2xl">🔧</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-500 rounded-2xl mb-4 shadow-lg">
+            <span className="text-3xl">🔧</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">TallerSystem</h1>
           <p className="text-muted-foreground text-sm mt-1">Ingresá a tu cuenta</p>
@@ -51,24 +52,36 @@ function LoginForm() {
 
         <Card>
           <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                   Email
                 </label>
-                <input type="email" required value={form.email}
+                <input
+                  type="email"
+                  required
+                  value={form.email}
                   onChange={e => setForm({ ...form, email: e.target.value })}
-                  className={inputClass} placeholder="admin@taller.com"
-                  autoComplete="email" />
+                  onKeyDown={e => e.key === "Enter" && handleSubmit(e as any)}
+                  className={inputClass}
+                  placeholder="admin@taller.com"
+                  autoComplete="email"
+                />
               </div>
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                   Contraseña
                 </label>
-                <input type="password" required value={form.password}
+                <input
+                  type="password"
+                  required
+                  value={form.password}
                   onChange={e => setForm({ ...form, password: e.target.value })}
-                  className={inputClass} placeholder="••••••••"
-                  autoComplete="current-password" />
+                  onKeyDown={e => e.key === "Enter" && handleSubmit(e as any)}
+                  className={inputClass}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                />
               </div>
 
               {error && (
@@ -77,11 +90,14 @@ function LoginForm() {
                 </div>
               )}
 
-              <Button type="submit" disabled={loading}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+              <Button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white h-12 text-base"
+              >
                 {loading ? "Ingresando..." : "Ingresar"}
               </Button>
-            </form>
+            </div>
           </CardContent>
         </Card>
 
@@ -95,11 +111,13 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-muted-foreground">Cargando...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

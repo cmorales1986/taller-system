@@ -49,6 +49,8 @@ export default function UsuariosPage() {
     setEditando(u);
     setForm({ nombre: u.nombre, email: u.email, password: "", rol: u.rol });
     setShowForm(true);
+    // Scroll al formulario en mobile
+    setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 100);
   }
 
   function handleNuevo() {
@@ -60,23 +62,17 @@ export default function UsuariosPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setGuardando(true);
-
     const url = editando ? `/api/usuarios/${editando.id}` : "/api/usuarios";
     const method = editando ? "PUT" : "POST";
-
-    // Si editando y no cambió password, no lo mandamos
     const body = { ...form };
     if (editando && !body.password) delete (body as any).password;
-
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-
     const data = await res.json();
     if (!res.ok) { alert(data.error); setGuardando(false); return; }
-
     setShowForm(false);
     setEditando(null);
     setForm(formVacio);
@@ -90,22 +86,19 @@ export default function UsuariosPage() {
     fetchUsuarios();
   }
 
-  const inputClass = "w-full border border-input rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring";
+  const inputClass = "w-full border border-input rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-orange-400";
   const selectStyle = { color: "#111827" };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Usuarios</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">
-            {usuarios.length} usuarios activos
-          </p>
+          <h1 className="text-xl lg:text-2xl font-bold">Usuarios</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">{usuarios.length} usuarios activos</p>
         </div>
-        <Button onClick={handleNuevo}
-          className="bg-orange-500 hover:bg-orange-600 text-white">
+        <Button onClick={handleNuevo} className="bg-orange-500 hover:bg-orange-600 text-white">
           + Nuevo Usuario
         </Button>
       </div>
@@ -118,7 +111,7 @@ export default function UsuariosPage() {
               {editando ? "Editar Usuario" : "Nuevo Usuario"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                     Nombre *
@@ -150,7 +143,7 @@ export default function UsuariosPage() {
                   </label>
                   <select required value={form.rol}
                     onChange={e => setForm({ ...form, rol: e.target.value })}
-                    style={selectStyle} className={`${inputClass} bg-white`}>
+                    style={selectStyle} className={`${inputClass} bg-background`}>
                     {ROLES_OPTIONS.map(r => (
                       <option key={r.value} value={r.value}>{r.label}</option>
                     ))}
@@ -183,32 +176,35 @@ export default function UsuariosPage() {
             <div>
               {usuarios.map((u, i) => (
                 <div key={u.id}>
-                  <div className="flex items-center justify-between px-6 py-4">
-                    <div className="flex items-center gap-4">
-                      {/* Avatar */}
-                      <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                  <div className="px-4 py-4 flex items-start justify-between gap-3">
+                    {/* Avatar + info */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
                         {u.nombre.charAt(0).toUpperCase()}
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-sm font-semibold text-foreground">{u.nombre}</p>
-                        <p className="text-xs text-muted-foreground">{u.email}</p>
+                        <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${ROLES[u.rol]?.color}`}>
+                            {ROLES[u.rol]?.label || u.rol}
+                          </span>
+                          <span className="text-xs text-muted-foreground hidden sm:inline">
+                            Desde {new Date(u.creado_en).toLocaleDateString("es-PY")}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${ROLES[u.rol]?.color}`}>
-                        {ROLES[u.rol]?.label || u.rol}
-                      </span>
-                      <p className="text-xs text-muted-foreground">
-                        Desde {new Date(u.creado_en).toLocaleDateString("es-PY")}
-                      </p>
+                    {/* Acciones */}
+                    <div className="flex items-center gap-1 shrink-0">
                       <Button variant="ghost" size="sm"
                         onClick={() => handleEditar(u)}
-                        className="text-orange-500 hover:text-orange-600 text-xs">
+                        className="text-orange-500 hover:text-orange-600 text-xs px-2">
                         Editar
                       </Button>
                       <Button variant="ghost" size="sm"
                         onClick={() => handleEliminar(u.id, u.nombre)}
-                        className="text-red-400 hover:text-red-500 text-xs">
+                        className="text-red-400 hover:text-red-500 text-xs px-2">
                         Desactivar
                       </Button>
                     </div>

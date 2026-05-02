@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import LoadingCar from "@/components/ui/LoadingCar";
 
@@ -61,18 +60,17 @@ export default function DashboardPage() {
   const mes = new Date().toLocaleDateString("es-PY", { month: "long", year: "numeric" });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
 
       {/* ── HEADER ── */}
       <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-xl lg:text-2xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground text-sm mt-0.5 capitalize">{mes}</p>
       </div>
 
-      {/* ── MÉTRICAS PRINCIPALES ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "16px" }}>
+      {/* ── MÉTRICAS PRINCIPALES — 2 cols mobile, 4 desktop ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
 
-        {/* Órdenes activas */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
@@ -80,7 +78,7 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold text-foreground">{data.ordenesActivas}</p>
+            <p className="text-3xl lg:text-4xl font-bold text-foreground">{data.ordenesActivas}</p>
             <p className="text-xs text-muted-foreground mt-1">en el taller ahora</p>
             {data.ordenesListas > 0 && (
               <p className="text-xs text-green-600 font-medium mt-2">
@@ -90,7 +88,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Órdenes del mes */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
@@ -98,12 +95,11 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold text-foreground">{data.ordenesMes}</p>
+            <p className="text-3xl lg:text-4xl font-bold text-foreground">{data.ordenesMes}</p>
             <p className="text-xs text-muted-foreground mt-1">ingresadas en {mes}</p>
           </CardContent>
         </Card>
 
-        {/* Facturación del mes */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
@@ -111,7 +107,7 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-foreground">
+            <p className="text-2xl lg:text-3xl font-bold text-foreground">
               {data.facturacionMes.toLocaleString("es-PY")}
             </p>
             <p className="text-xs text-muted-foreground mt-1">Guaraníes</p>
@@ -125,7 +121,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Clientes y vehículos */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
@@ -149,10 +144,9 @@ export default function DashboardPage() {
 
       </div>
 
-      {/* ── FILA 2: ÓRDENES POR ESTADO + STOCK BAJO ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+      {/* ── FILA 2 — 1 col mobile, 2 desktop ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
 
-        {/* Órdenes por estado */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Órdenes por estado</CardTitle>
@@ -165,21 +159,19 @@ export default function DashboardPage() {
                 {data.ordenesPorEstado
                   .sort((a, b) => b._count.estado - a._count.estado)
                   .map(item => (
-                    <div key={item.estado} className="flex items-center justify-between">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${ESTADOS[item.estado]?.color}`}>
+                    <div key={item.estado} className="flex items-center justify-between gap-2">
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border shrink-0 ${ESTADOS[item.estado]?.color}`}>
                         {ESTADOS[item.estado]?.label || item.estado}
                       </span>
-                      <div className="flex items-center gap-3 flex-1 mx-4">
-                        <div className="flex-1 bg-muted rounded-full h-2">
-                          <div
-                            className="bg-orange-400 h-2 rounded-full transition-all"
-                            style={{
-                              width: `${Math.min((item._count.estado / Math.max(...data.ordenesPorEstado.map(o => o._count.estado))) * 100, 100)}%`
-                            }}
-                          />
-                        </div>
+                      <div className="flex-1 bg-muted rounded-full h-2">
+                        <div
+                          className="bg-orange-400 h-2 rounded-full transition-all"
+                          style={{
+                            width: `${Math.min((item._count.estado / Math.max(...data.ordenesPorEstado.map(o => o._count.estado))) * 100, 100)}%`
+                          }}
+                        />
                       </div>
-                      <span className="text-sm font-bold text-foreground w-6 text-right">
+                      <span className="text-sm font-bold text-foreground w-5 text-right shrink-0">
                         {item._count.estado}
                       </span>
                     </div>
@@ -189,7 +181,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Stock bajo */}
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -208,7 +199,7 @@ export default function DashboardPage() {
                 <p className="text-sm text-muted-foreground">Todo el stock está en orden</p>
               </div>
             ) : (
-              <div className="space-y-0">
+              <div>
                 {data.repuestosStockBajo.map((r, i) => (
                   <div key={r.id}>
                     <div className="flex justify-between items-center py-3">
@@ -218,7 +209,7 @@ export default function DashboardPage() {
                           Mínimo: {r.stock_minimo} unidades
                         </p>
                       </div>
-                      <span className={`text-sm font-bold px-2.5 py-1 rounded-full ${
+                      <span className={`text-sm font-bold px-2.5 py-1 rounded-full shrink-0 ${
                         r.stock_actual === 0
                           ? "bg-red-100 text-red-700"
                           : "bg-yellow-100 text-yellow-700"
@@ -231,8 +222,7 @@ export default function DashboardPage() {
                 ))}
                 <Separator className="mt-1" />
                 <div className="pt-3">
-                  <Link href="/repuestos"
-                    className="text-xs text-orange-500 hover:text-orange-600 font-medium">
+                  <Link href="/repuestos" className="text-xs text-orange-500 hover:text-orange-600 font-medium">
                     Ver todos los repuestos →
                   </Link>
                 </div>
@@ -248,8 +238,7 @@ export default function DashboardPage() {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Últimas órdenes</CardTitle>
-            <Link href="/ordenes"
-              className="text-xs text-orange-500 hover:text-orange-600 font-medium">
+            <Link href="/ordenes" className="text-xs text-orange-500 hover:text-orange-600 font-medium">
               Ver todas →
             </Link>
           </div>
@@ -261,14 +250,15 @@ export default function DashboardPage() {
             <div>
               {data.ultimasOrdenes.map((o, i) => (
                 <div key={o.id}>
-                  <div className="flex items-center justify-between py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-xs font-bold text-muted-foreground w-20">
+                  <div className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    {/* Info principal */}
+                    <div className="flex items-start gap-3">
+                      <span className="font-mono text-xs font-bold text-muted-foreground shrink-0 mt-0.5">
                         OR-{String(o.numero).padStart(4, "0")}
                       </span>
                       <div>
                         <p className="text-sm font-medium text-foreground">{o.clientes.nombre}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           <span className="bg-foreground text-background text-xs font-bold px-1.5 py-0.5 rounded mr-1">
                             {o.vehiculos.patente}
                           </span>
@@ -276,15 +266,15 @@ export default function DashboardPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    {/* Estado + monto + ver */}
+                    <div className="flex items-center gap-3 ml-9 sm:ml-0">
                       <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${ESTADOS[o.estado]?.color}`}>
                         {ESTADOS[o.estado]?.label}
                       </span>
                       <span className="text-sm font-bold text-foreground">
                         {Number(o.total).toLocaleString("es-PY")} Gs.
                       </span>
-                      <Link href={`/ordenes/${o.id}`}
-                        className="text-xs text-orange-500 hover:text-orange-600 font-medium">
+                      <Link href={`/ordenes/${o.id}`} className="text-xs text-orange-500 hover:text-orange-600 font-medium">
                         Ver →
                       </Link>
                     </div>
