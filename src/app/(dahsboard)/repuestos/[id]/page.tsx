@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import LoadingCar from "@/components/ui/LoadingCar";
 
 interface Repuesto {
   id: string; codigo: string | null; nombre: string;
@@ -75,7 +76,7 @@ export default function RepuestoDetallePage({ params }: { params: Promise<{ id: 
     router.push("/repuestos");
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Cargando...</p></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><LoadingCar /></div>;
   if (!repuesto) return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Repuesto no encontrado</p></div>;
 
   const stockAlerta = repuesto.stock_actual <= repuesto.stock_minimo;
@@ -87,7 +88,7 @@ export default function RepuestoDetallePage({ params }: { params: Promise<{ id: 
   const selectStyle = { color: "#111827" };
 
   return (
-    <div className="space-y-4 lg:space-y-6 pb-10 max-w-2xl">
+    <div className="space-y-4 lg:space-y-6 pb-10">
 
       {/* Header */}
       <div className="flex items-start gap-3">

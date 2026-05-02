@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import LoadingCar from "@/components/ui/LoadingCar";
 
 interface VehiculoDetalle {
   id: string; patente: string; marca: string; modelo: string;
@@ -82,9 +83,7 @@ export default function VehiculoDetallePage({ params }: { params: Promise<{ id: 
   }
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <p className="text-muted-foreground">Cargando...</p>
-    </div>
+    <LoadingCar />
   );
 
   if (!vehiculo?.patente) return (

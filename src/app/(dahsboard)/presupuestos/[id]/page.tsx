@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import LoadingCar from "@/components/ui/LoadingCar";
 
 interface Presupuesto {
   id: string; numero: number; estado: string;
@@ -68,7 +69,7 @@ export default function PresupuestoDetallePage({ params }: { params: Promise<{ i
     router.push(`/ordenes/${data.id}`);
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Cargando...</p></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><LoadingCar /></div>;
   if (!presupuesto) return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Presupuesto no encontrado</p></div>;
 
   const inputClass = "w-full border border-input rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-orange-400";

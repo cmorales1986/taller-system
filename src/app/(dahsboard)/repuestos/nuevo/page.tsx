@@ -42,7 +42,7 @@ export default function NuevoRepuestoPage() {
   const selectStyle = { color: "#111827" };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl lg:max-w-none">
 
       {/* Header */}
       <div className="flex items-center gap-3">

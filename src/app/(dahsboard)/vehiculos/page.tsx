@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import LoadingCar from "@/components/ui/LoadingCar";
 
 interface Vehiculo {
   id: string;
@@ -60,7 +61,7 @@ export default function VehiculosPage() {
       {/* Tabla desktop / Cards mobile */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Cargando...</div>
+          <LoadingCar />
         ) : filtrados.length === 0 ? (
           <div className="p-8 text-center text-gray-400">
             {busqueda ? "No se encontraron vehículos" : "No hay vehículos registrados aún"}

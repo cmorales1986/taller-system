@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import LoadingCar from "@/components/ui/LoadingCar";
 
 interface Usuario {
   id: string; nombre: string; email: string;
@@ -169,7 +170,7 @@ export default function UsuariosPage() {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 text-center text-muted-foreground">Cargando...</div>
+            <LoadingCar />
           ) : usuarios.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">No hay usuarios registrados</div>
           ) : (

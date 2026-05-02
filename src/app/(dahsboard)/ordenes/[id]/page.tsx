@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import LoadingCar from "@/components/ui/LoadingCar";
 
 interface OrdenDetalle {
   id: string; numero: number; estado: string;
@@ -109,7 +110,7 @@ export default function OrdenDetallePage({ params }: { params: Promise<{ id: str
     setActualizando(false);
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Cargando...</p></div>;
+  if (loading) return <LoadingCar />;
   if (!orden?.clientes) return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Orden no encontrada</p></div>;
 
   const estadoActualIndex = ORDEN_ESTADOS.indexOf(orden.estado);

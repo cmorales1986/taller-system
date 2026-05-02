@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import LoadingCar from "@/components/ui/LoadingCar";
 
 interface Factura {
   id: string; numero: number; estado: string;
@@ -105,7 +106,7 @@ export default function FacturasPage() {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 text-center text-muted-foreground">Cargando...</div>
+            <LoadingCar />
           ) : filtradas.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               {busqueda || filtroEstado ? "No se encontraron facturas" : "No hay facturas registradas aún"}

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import LoadingCar from "@/components/ui/LoadingCar";
 
 interface Presupuesto {
   id: string; numero: number; estado: string;
@@ -86,7 +87,7 @@ export default function PresupuestosPage() {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 text-center text-muted-foreground">Cargando...</div>
+            <LoadingCar />
           ) : filtrados.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               {busqueda || filtroEstado ? "No se encontraron presupuestos" : "No hay presupuestos registrados aún"}
