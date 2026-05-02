@@ -76,7 +76,6 @@ export default function NuevaOrdenPage() {
   const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400";
   const selectStyle = { color: "#111827" };
 
-  // Componente interno para item de repuesto/servicio en mobile
   function ItemRow({ item, index, tipo }: {
     item: ItemOR; index: number;
     tipo: "repuesto" | "servicio";
@@ -225,6 +224,7 @@ export default function NuevaOrdenPage() {
             <h2 className="font-semibold text-gray-700 flex items-center gap-2">
               <span className="bg-orange-100 text-orange-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">3</span>
               Repuestos
+              <span className="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Opcional</span>
             </h2>
             <button type="button"
               onClick={() => setItemsRepuesto([...itemsRepuesto, { ref_id: "", descripcion: "", cantidad: "1", precio_unitario: "0" }])}
@@ -233,7 +233,9 @@ export default function NuevaOrdenPage() {
             </button>
           </div>
           {itemsRepuesto.length === 0 ? (
-            <p className="text-sm text-gray-400 italic text-center py-4">Sin repuestos — hacé click en <b>+ Agregar</b></p>
+            <p className="text-sm text-gray-400 italic text-center py-4">
+              No se agregaron repuestos — si necesitás agregar, hacé click en <b>+ Agregar</b>
+            </p>
           ) : (
             <div className="space-y-2">
               {itemsRepuesto.map((item, i) => (
@@ -252,6 +254,7 @@ export default function NuevaOrdenPage() {
             <h2 className="font-semibold text-gray-700 flex items-center gap-2">
               <span className="bg-orange-100 text-orange-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">4</span>
               Mano de obra / Servicios
+              <span className="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Opcional</span>
             </h2>
             <button type="button"
               onClick={() => setItemsServicio([...itemsServicio, { ref_id: "", descripcion: "", cantidad: "1", precio_unitario: "0" }])}
@@ -260,7 +263,9 @@ export default function NuevaOrdenPage() {
             </button>
           </div>
           {itemsServicio.length === 0 ? (
-            <p className="text-sm text-gray-400 italic text-center py-4">Sin servicios — hacé click en <b>+ Agregar</b></p>
+            <p className="text-sm text-gray-400 italic text-center py-4">
+              No se agregó mano de obra — si necesitás agregar, hacé click en <b>+ Agregar</b>
+            </p>
           ) : (
             <div className="space-y-2">
               {itemsServicio.map((item, i) => (
