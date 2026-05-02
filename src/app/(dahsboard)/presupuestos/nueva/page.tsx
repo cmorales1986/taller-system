@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import MicButton from "@/components/ui/MicButton";
 
 interface Cliente { id: string; nombre: string; }
 interface Vehiculo { id: string; patente: string; marca: string; modelo: string; cliente_id: string; }
@@ -175,12 +176,27 @@ export default function NuevoPresupuestoPage() {
                   onChange={e => setForm({ ...form, validez_dias: e.target.value })}
                   className={inputClass} placeholder="15" min="1" />
               </div>
+
+              {/* Notas con micrófono */}
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Notas</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Notas / Observaciones
+                  </label>
+                  <MicButton
+                    contexto="observaciones y notas del presupuesto para el cliente del taller mecánico"
+                    onResult={texto => setForm(f => ({
+                      ...f,
+                      notas: f.notas ? f.notas + " " + texto : texto
+                    }))}
+                  />
+                </div>
                 <textarea value={form.notas}
                   onChange={e => setForm({ ...form, notas: e.target.value })}
-                  className={inputClass} rows={2} placeholder="Observaciones del presupuesto..." />
+                  className={inputClass} rows={2}
+                  placeholder="Observaciones del presupuesto... (o usá el micrófono 🎤)" />
               </div>
+
             </div>
           </CardContent>
         </Card>

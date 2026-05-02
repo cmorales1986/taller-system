@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import MicButton from "@/components/ui/MicButton";
 
 interface Cliente { id: string; nombre: string; }
 interface Vehiculo { id: string; patente: string; marca: string; modelo: string; cliente_id: string; }
@@ -203,18 +204,49 @@ export default function NuevaOrdenPage() {
             Descripción del problema
           </h2>
           <div className="space-y-4">
+
+            {/* Problema reportado */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Problema reportado *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-600">
+                  Problema reportado *
+                </label>
+                <MicButton
+                  contexto="problema reportado por el cliente del vehículo"
+                  onResult={texto => setForm(f => ({
+                    ...f,
+                    descripcion_problema: f.descripcion_problema
+                      ? f.descripcion_problema + " " + texto
+                      : texto
+                  }))}
+                />
+              </div>
               <textarea required value={form.descripcion_problema}
                 onChange={e => setForm({ ...form, descripcion_problema: e.target.value })}
-                className={inputClass} rows={3} placeholder="¿Qué problema reporta el cliente?" />
+                className={inputClass} rows={3}
+                placeholder="¿Qué problema reporta el cliente? (o usá el micrófono 🎤)" />
             </div>
+
+            {/* Notas internas */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Notas internas</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-600">
+                  Notas internas
+                </label>
+                <MicButton
+                  contexto="notas internas del mecánico sobre inspección del vehículo"
+                  onResult={texto => setForm(f => ({
+                    ...f,
+                    notas: f.notas ? f.notas + " " + texto : texto
+                  }))}
+                />
+              </div>
               <textarea value={form.notas}
                 onChange={e => setForm({ ...form, notas: e.target.value })}
-                className={inputClass} rows={2} placeholder="Notas internas del taller..." />
+                className={inputClass} rows={2}
+                placeholder="Notas internas del taller... (o usá el micrófono 🎤)" />
             </div>
+
           </div>
         </div>
 

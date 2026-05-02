@@ -130,7 +130,7 @@ export default function Sidebar({ rol, open, onClose }: Props) {
         </nav>
 
         <div className="p-4 border-t border-gray-700 text-xs text-gray-500">
-          v1.0.0 — Fase 1
+          v2.0.0 — Fase 2
         </div>
       </aside>
     </>
