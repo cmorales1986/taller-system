@@ -2,10 +2,16 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import LoadingCar from "@/components/ui/LoadingCar";
+import { PresupuestoPDF } from "@/components/pdf/PresupuestoPDF";
+
+const PDFDownloadLink = dynamic(
+  () => import("@react-pdf/renderer").then(mod => mod.PDFDownloadLink),
+  { ssr: false }
+);
 
 interface Presupuesto {
   id: string; numero: number; estado: string;
@@ -13,7 +19,7 @@ interface Presupuesto {
   validez_dias: number; notas: string | null;
   kilometraje: number | null; creado_en: string;
   fecha_aprobacion: string | null;
-  clientes: { id: string; nombre: string; telefono: string | null; email: string | null };
+  clientes: { id: string; nombre: string; telefono: string | null; email: string | null; ruc_ci?: string | null };
   vehiculos: { id: string; patente: string; marca: string; modelo: string; anio: number | null; color: string | null };
   presupuesto_repuestos: { id: string; descripcion: string; cantidad: number; precio_unitario: number; subtotal: number }[];
   presupuesto_servicios: { id: string; descripcion: string; cantidad: number; precio_unitario: number; subtotal: number }[];
@@ -69,7 +75,7 @@ export default function PresupuestoDetallePage({ params }: { params: Promise<{ i
     router.push(`/ordenes/${data.id}`);
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><LoadingCar /></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Cargando...</p></div>;
   if (!presupuesto) return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Presupuesto no encontrado</p></div>;
 
   const inputClass = "w-full border border-input rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-orange-400";
@@ -94,6 +100,19 @@ export default function PresupuestoDetallePage({ params }: { params: Promise<{ i
             {" · "}Válido {presupuesto.validez_dias} días
             {" · "}Vence {vencimiento.toLocaleDateString("es-PY")}
           </p>
+          {/* Botón PDF */}
+          <div className="mt-2">
+            <PDFDownloadLink
+              document={<PresupuestoPDF presupuesto={presupuesto} />}
+              fileName={`P-${String(presupuesto.numero).padStart(4, "0")}.pdf`}
+            >
+              {({ loading: pdfLoading }) => (
+                <button className="text-xs bg-gray-800 hover:bg-gray-900 text-white px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1.5">
+                  {pdfLoading ? "Generando..." : "⬇ Descargar Presupuesto PDF"}
+                </button>
+              )}
+            </PDFDownloadLink>
+          </div>
         </div>
       </div>
 
@@ -152,7 +171,7 @@ export default function PresupuestoDetallePage({ params }: { params: Promise<{ i
         </Card>
       )}
 
-      {/* Cliente · Vehículo · Resumen — 1 col mobile, 3 desktop */}
+      {/* Cliente · Vehículo · Resumen */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -194,7 +213,7 @@ export default function PresupuestoDetallePage({ params }: { params: Promise<{ i
         </Card>
       </div>
 
-      {/* Repuestos + Servicios — 1 col mobile, 2 desktop */}
+      {/* Repuestos + Servicios */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -263,8 +282,16 @@ export default function PresupuestoDetallePage({ params }: { params: Promise<{ i
       <Card>
         <CardContent className="pt-6">
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Repuestos: <span className="font-medium text-foreground">{presupuesto.presupuesto_repuestos.reduce((acc, r) => acc + Number(r.subtotal), 0).toLocaleString("es-PY")} Gs.</span></p>
-            <p className="text-sm text-muted-foreground">Mano de obra: <span className="font-medium text-foreground">{presupuesto.presupuesto_servicios.reduce((acc, s) => acc + Number(s.subtotal), 0).toLocaleString("es-PY")} Gs.</span></p>
+            <p className="text-sm text-muted-foreground">
+              Repuestos: <span className="font-medium text-foreground">
+                {presupuesto.presupuesto_repuestos.reduce((acc, r) => acc + Number(r.subtotal), 0).toLocaleString("es-PY")} Gs.
+              </span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Mano de obra: <span className="font-medium text-foreground">
+                {presupuesto.presupuesto_servicios.reduce((acc, s) => acc + Number(s.subtotal), 0).toLocaleString("es-PY")} Gs.
+              </span>
+            </p>
             <Separator className="my-2" />
             <p className="text-2xl font-bold">Total: {Number(presupuesto.total).toLocaleString("es-PY")} Gs.</p>
           </div>
